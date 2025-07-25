@@ -52,10 +52,10 @@ export default function Auth() {
             </div>
           </div>
           <h1 className="text-3xl font-bold gradient-primary bg-clip-text text-transparent">
-            WhatsChat
+            Chatify
           </h1>
           <p className="text-muted-foreground mt-2">
-            Connect with friends in real-time
+            Text with friends in real-time
           </p>
         </div>
 
