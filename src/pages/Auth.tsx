@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('signin');
+  const [showVerifiedMessage, setShowVerifiedMessage] = useState(false);
 
   const [signInData, setSignInData] = useState({
     email: '',
@@ -22,6 +24,17 @@ export default function Auth() {
     username: '',
     confirmPassword: ''
   });
+
+  // Check if user came from email verification
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('verified') === 'true') {
+      setShowVerifiedMessage(true);
+      setActiveTab('signin');
+      // Clear the URL parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +52,14 @@ export default function Auth() {
     }
     
     setLoading(true);
-    await signUp(signUpData.email, signUpData.password, signUpData.username);
+    const result = await signUp(signUpData.email, signUpData.password, signUpData.username);
+    
+    // If sign up was successful, switch to sign in tab
+    if (result && !result.error) {
+      setActiveTab('signin');
+      setSignUpData({ email: '', password: '', username: '', confirmPassword: '' });
+    }
+    
     setLoading(false);
   };
 
@@ -70,11 +90,18 @@ export default function Auth() {
           <CardHeader>
             <CardTitle>Welcome</CardTitle>
             <CardDescription>
-              Sign in to your account or create a new one
+              {showVerifiedMessage ? (
+                <div className="flex items-center gap-2 text-green-600">
+                  <CheckCircle className="h-4 w-4" />
+                  Email verified! You can now sign in.
+                </div>
+              ) : (
+                "Sign in to your account or create a new one"
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>

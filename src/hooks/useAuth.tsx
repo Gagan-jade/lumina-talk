@@ -77,9 +77,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error };
     }
     
+    // Set redirect URL to show registration success message instead of redirecting to app
     const redirectUrl = window.location.hostname === 'localhost' 
-      ? `http://localhost:${window.location.port || '5173'}/`
-      : `${window.location.origin}/`;
+      ? `http://localhost:${window.location.port || '5173'}/auth?verified=true`
+      : `${window.location.origin}/auth?verified=true`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -95,9 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) {
       let errorMessage = error.message;
       
-      // Handle specific error cases
-      if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-        errorMessage = "Email already registered";
+      // Handle specific error cases for email already exists
+      if (error.message.includes('already registered') || 
+          error.message.includes('already been registered') ||
+          error.message.includes('User already registered')) {
+        errorMessage = "Email already exists";
       }
       
       toast({
@@ -105,14 +108,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: errorMessage,
         variant: "destructive"
       });
+      return { error };
     } else {
       toast({
         title: "Check your email",
         description: "We've sent you a confirmation link"
       });
+      return { error: null, success: true };
     }
-    
-    return { error };
   };
 
   const signInWithGoogle = async () => {
@@ -147,9 +150,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     
     if (error) {
+      let errorMessage = error.message;
+      
+      // Handle email not verified case
+      if (error.message.includes('Email not confirmed') || 
+          error.message.includes('email not verified') ||
+          error.message.includes('not confirmed')) {
+        errorMessage = "Email not verified yet. Please check your email and click the verification link.";
+      }
+      
       toast({
         title: "Sign in failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
     }
