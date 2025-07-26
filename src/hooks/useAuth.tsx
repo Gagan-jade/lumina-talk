@@ -60,7 +60,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, username: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    // Check if username already exists
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('username', username)
+      .single();
+    
+    if (existingProfile) {
+      const error = { message: "Username already exists" };
+      toast({
+        title: "Sign up failed",
+        description: "Username already exists",
+        variant: "destructive"
+      });
+      return { error };
+    }
+    
+    const redirectUrl = window.location.hostname === 'localhost' 
+      ? `http://localhost:${window.location.port || '5173'}/`
+      : `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -74,9 +93,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     
     if (error) {
+      let errorMessage = error.message;
+      
+      // Handle specific error cases
+      if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+        errorMessage = "Email already registered";
+      }
+      
       toast({
         title: "Sign up failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
     } else {
