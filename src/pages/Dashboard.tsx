@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { UserList } from '@/components/UserList';
 import { ChatWindow } from '@/components/ChatWindow';
+import { Button } from '@/components/ui/button';
+import { MessageCircle } from 'lucide-react';
 
 export default function Dashboard() {
   const [selectedUserId, setSelectedUserId] = useState<string>('');
@@ -12,28 +14,57 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="h-screen flex bg-background">
-      <div className="w-1/3 border-r">
-        <UserList 
-          onSelectUser={handleSelectUser}
-          selectedUserId={selectedUserId}
-        />
-      </div>
-      
-      <div className="flex-1">
-        {selectedUserId ? (
-          <ChatWindow 
-            selectedUserId={selectedUserId}
-            selectedUsername={selectedUsername}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center text-muted-foreground">
-            <div className="text-center">
-              <h3 className="text-lg font-medium mb-2">Select a user to start chatting</h3>
-              <p>Choose someone from the user list to begin a conversation</p>
-            </div>
-          </div>
+    <div className="h-screen bg-background flex flex-col md:flex-row">
+      {/* Mobile header */}
+      <div className="md:hidden flex items-center justify-between p-4 border-b bg-card">
+        <h1 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">
+          Chatify
+        </h1>
+        {selectedUserId && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedUserId('');
+              setSelectedUsername('');
+            }}
+            className="text-muted-foreground"
+          >
+            Back to Users
+          </Button>
         )}
+      </div>
+
+      <div className="flex-1 flex">
+        {/* User List - Hidden on mobile when chat is selected */}
+        <div className={`${
+          selectedUserId ? 'hidden md:block' : 'block'
+        } w-full md:w-80 lg:w-96 border-r flex-shrink-0`}>
+          <UserList 
+            onSelectUser={handleSelectUser}
+            selectedUserId={selectedUserId}
+          />
+        </div>
+        
+        {/* Chat Window - Full width on mobile when selected */}
+        <div className={`${
+          selectedUserId ? 'block' : 'hidden md:block'
+        } flex-1`}>
+          {selectedUserId ? (
+            <ChatWindow
+              selectedUserId={selectedUserId}
+              selectedUsername={selectedUsername}
+            />
+          ) : (
+            <div className="hidden md:flex items-center justify-center h-full text-muted-foreground">
+              <div className="text-center">
+                <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                <h3 className="text-xl font-medium mb-2">Welcome to Chatify</h3>
+                <p>Select a user to start chatting</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

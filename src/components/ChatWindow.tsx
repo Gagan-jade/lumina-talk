@@ -141,36 +141,35 @@ export function ChatWindow({ selectedUserId, selectedUsername }: ChatWindowProps
   };
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-3">
-          <Avatar>
-            <AvatarFallback>
-              {getInitials(selectedUsername)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="font-semibold">{selectedUsername}</div>
-          </div>
-        </CardTitle>
-      </CardHeader>
+    <div className="h-full flex flex-col bg-background">
+      <div className="flex items-center gap-3 p-3 md:p-4 border-b bg-card">
+        <Avatar className="h-8 w-8 md:h-10 md:w-10">
+          <AvatarFallback className="text-xs md:text-sm">
+            {getInitials(selectedUsername)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-medium text-sm md:text-base truncate">{selectedUsername}</h3>
+          <p className="text-xs md:text-sm text-muted-foreground">Active now</p>
+        </div>
+      </div>
 
-      <CardContent className="flex-1 flex flex-col p-0">
-        <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
-          <div className="space-y-4 pb-4">
+      <div className="flex-1 flex flex-col">
+        <ScrollArea className="flex-1 px-3 md:px-4" ref={scrollAreaRef}>
+          <div className="space-y-2 md:space-y-4 py-2 md:py-4">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
+                  className={`max-w-[85%] md:max-w-[80%] p-2 md:p-3 rounded-lg text-sm md:text-base ${
                     message.sender_id === user?.id
                       ? 'chat-bubble-sent'
                       : 'chat-bubble-received'
                   }`}
                 >
-                  <p className="text-sm">{message.content}</p>
+                  <p>{message.content}</p>
                   <p className="text-xs opacity-70 mt-1">
                     {new Date(message.created_at).toLocaleTimeString([], {
                       hour: '2-digit',
@@ -183,21 +182,26 @@ export function ChatWindow({ selectedUserId, selectedUsername }: ChatWindowProps
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t">
+        <div className="p-3 md:p-4 border-t bg-background">
           <div className="flex gap-2">
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type a message..."
               onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-              className="flex-1"
+              className="flex-1 text-sm md:text-base"
             />
-            <Button onClick={sendMessage} disabled={!newMessage.trim()}>
+            <Button 
+              onClick={sendMessage} 
+              disabled={!newMessage.trim()}
+              size="sm"
+              className="px-3 md:px-4"
+            >
               <Send className="h-4 w-4" />
             </Button>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

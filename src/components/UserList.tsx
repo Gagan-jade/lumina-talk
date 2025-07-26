@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, LogOut } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { MessageCircle, LogOut, Search } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -25,6 +26,7 @@ export function UserList({ onSelectUser, selectedUserId }: UserListProps) {
   const { user, signOut } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentUserProfile, setCurrentUserProfile] = useState<Profile | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -131,12 +133,28 @@ export function UserList({ onSelectUser, selectedUserId }: UserListProps) {
             </div>
           </div>
         )}
+        
+        <div className="px-4 pb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
       </CardHeader>
       
       <CardContent className="p-0 pb-4">
-        <ScrollArea className="h-[calc(100vh-280px)]">
+        <ScrollArea className="h-[calc(100vh-350px)]">
           <div className="space-y-1 px-4">
-            {profiles.map((profile) => (
+            {profiles
+              .filter(profile => 
+                profile.username.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map((profile) => (
               <Button
                 key={profile.user_id}
                 variant={selectedUserId === profile.user_id ? "secondary" : "ghost"}
