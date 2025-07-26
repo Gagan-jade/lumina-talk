@@ -8,7 +8,7 @@ import { MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [signInData, setSignInData] = useState({
@@ -45,16 +45,7 @@ export default function Auth() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/`
-      }
-    });
-    
-    if (error) {
-      console.error('Google sign-in error:', error);
-    }
+    await signInWithGoogle();
     setLoading(false);
   };
 
