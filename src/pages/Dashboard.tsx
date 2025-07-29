@@ -1,32 +1,32 @@
-import { useState } from 'react';
-import { UserList } from '@/components/UserList';
-import { ChatWindow } from '@/components/ChatWindow';
-import { Button } from '@/components/ui/button';
-import { MessageCircle } from 'lucide-react';
+"use client"
+
+import { useState } from "react"
+import { UserList } from "@/components/UserList"
+import { ChatWindow } from "@/components/ChatWindow"
+import { Button } from "@/components/ui/button"
+import { MessageCircle } from "lucide-react"
 
 export default function Dashboard() {
-  const [selectedUserId, setSelectedUserId] = useState<string>('');
-  const [selectedUsername, setSelectedUsername] = useState<string>('');
+  const [selectedUserId, setSelectedUserId] = useState<string>("")
+  const [selectedUsername, setSelectedUsername] = useState<string>("")
 
   const handleSelectUser = (userId: string, username: string) => {
-    setSelectedUserId(userId);
-    setSelectedUsername(username);
-  };
+    setSelectedUserId(userId)
+    setSelectedUsername(username)
+  }
 
   return (
     <div className="h-screen bg-background flex flex-col md:flex-row">
       {/* Mobile header */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b bg-card">
-        <h1 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">
-          Lumina
-        </h1>
+      <div className="md:hidden flex items-center justify-between p-4 border-b bg-card flex-shrink-0">
+        <h1 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">Lumina</h1>
         {selectedUserId && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => {
-              setSelectedUserId('');
-              setSelectedUsername('');
+              setSelectedUserId("")
+              setSelectedUsername("")
             }}
             className="text-muted-foreground"
           >
@@ -35,26 +35,18 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="flex-1 flex">
+      <div className="flex-1 flex min-h-0">
         {/* User List - Hidden on mobile when chat is selected */}
-        <div className={`${
-          selectedUserId ? 'hidden md:block' : 'block'
-        } w-full md:w-80 lg:w-96 border-r flex-shrink-0`}>
-          <UserList 
-            onSelectUser={handleSelectUser}
-            selectedUserId={selectedUserId}
-          />
+        <div
+          className={`${selectedUserId ? "hidden md:block" : "block"} w-full md:w-80 lg:w-96 border-r flex-shrink-0`}
+        >
+          <UserList onSelectUser={handleSelectUser} selectedUserId={selectedUserId} />
         </div>
-        
+
         {/* Chat Window - Full width on mobile when selected */}
-        <div className={`${
-          selectedUserId ? 'block' : 'hidden md:block'
-        } flex-1`}>
+        <div className={`${selectedUserId ? "block" : "hidden md:block"} flex-1 min-h-0`}>
           {selectedUserId ? (
-            <ChatWindow
-              selectedUserId={selectedUserId}
-              selectedUsername={selectedUsername}
-            />
+            <ChatWindow selectedUserId={selectedUserId} selectedUsername={selectedUsername} />
           ) : (
             <div className="hidden md:flex items-center justify-center h-full text-muted-foreground">
               <div className="text-center">
@@ -67,5 +59,5 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
-  );
+  )
 }
