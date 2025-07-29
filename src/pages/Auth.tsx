@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageCircle, CheckCircle } from 'lucide-react';
+import { MessageCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
@@ -26,6 +26,9 @@ export default function Auth() {
   });
 
   const [passwordMismatch, setPasswordMismatch] = useState(false);
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Check if user came from email verification
   useEffect(() => {
@@ -123,13 +126,28 @@ export default function Auth() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Input
-                      type="password"
-                      placeholder="Password"
-                      value={signInData.password}
-                      onChange={(e) => setSignInData(prev => ({ ...prev, password: e.target.value }))}
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showSignInPassword ? "text" : "password"}
+                        placeholder="Password"
+                        value={signInData.password}
+                        onChange={(e) => setSignInData(prev => ({ ...prev, password: e.target.value }))}
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowSignInPassword(!showSignInPassword)}
+                      >
+                        {showSignInPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
                   <Button 
                     type="submit" 
@@ -187,26 +205,56 @@ export default function Auth() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Input
-                      type="password"
-                      placeholder="Password"
-                      value={signUpData.password}
-                      onChange={(e) => setSignUpData(prev => ({ ...prev, password: e.target.value }))}
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showSignUpPassword ? "text" : "password"}
+                        placeholder="Password"
+                        value={signUpData.password}
+                        onChange={(e) => setSignUpData(prev => ({ ...prev, password: e.target.value }))}
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                      >
+                        {showSignUpPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Input
-                      type="password"
-                      placeholder="Confirm Password"
-                      value={signUpData.confirmPassword}
-                      onChange={(e) => {
-                        setSignUpData(prev => ({ ...prev, confirmPassword: e.target.value }));
-                        setPasswordMismatch(false);
-                      }}
-                      required
-                      className={passwordMismatch ? 'border-destructive' : ''}
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirm Password"
+                        value={signUpData.confirmPassword}
+                        onChange={(e) => {
+                          setSignUpData(prev => ({ ...prev, confirmPassword: e.target.value }));
+                          setPasswordMismatch(false);
+                        }}
+                        required
+                        className={passwordMismatch ? 'border-destructive' : ''}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </div>
                     {passwordMismatch && (
                       <p className="text-sm text-destructive">Passwords do not match</p>
                     )}

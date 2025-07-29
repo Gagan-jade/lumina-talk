@@ -76,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       return { error };
     }
+
     
     // Set redirect URL to show registration success message instead of redirecting to app
     const redirectUrl = window.location.hostname === 'localhost' 
@@ -100,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error.message.includes('already registered') || 
           error.message.includes('already been registered') ||
           error.message.includes('User already registered')) {
-        errorMessage = "Email already exists";
+        errorMessage = "Email already exists, please login";
       }
       
       toast({
