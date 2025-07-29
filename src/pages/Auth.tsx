@@ -86,7 +86,7 @@ export default function Auth() {
             </div>
           </div>
           <h1 className="text-3xl font-bold gradient-primary bg-clip-text text-transparent">
-            Lumina-Talk
+            Lumina
           </h1>
           <p className="text-muted-foreground mt-2">
             Text with friends in real-time
