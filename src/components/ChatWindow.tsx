@@ -30,47 +30,36 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
   const [newMessage, setNewMessage] = useState("")
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [selectedUserProfile, setSelectedUserProfile] = useState<any>(null)
+  const [hasScrolledOnFocus, setHasScrolledOnFocus] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const socketRef = useRef<Socket | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Function to scroll to bottom
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
-  // Handle keyboard visibility detection
-  useEffect(() => {
-    const handleResize = () => {
-      if (typeof window !== "undefined") {
-        const windowHeight = window.innerHeight
-        const visualViewportHeight = window.visualViewport?.height || windowHeight
-        const keyboardHeight = windowHeight - visualViewportHeight
-
-        const keyboardIsOpen = keyboardHeight > 150 // Threshold for keyboard detection
-
-        if (keyboardIsOpen) {
-          // Scroll to bottom once when keyboard opens
-          setTimeout(() => {
-            scrollToBottom()
-          }, 300) // Small delay to let keyboard animation complete
+  // Function to scroll messages to bottom only if scrollable
+  const scrollMessagesToBottomIfNeeded = () => {
+    const scrollArea = scrollAreaRef.current
+    if (scrollArea) {
+      const scrollContainer = scrollArea.querySelector("[data-radix-scroll-area-viewport]")
+      if (scrollContainer) {
+        const { scrollHeight, clientHeight, scrollTop } = scrollContainer
+        // Only scroll if there's content to scroll and we're not already at the bottom
+        if (scrollHeight > clientHeight && scrollTop < scrollHeight - clientHeight - 10) {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
         }
       }
     }
+  }
 
-    if (typeof window !== "undefined" && window.visualViewport) {
-      window.visualViewport.addEventListener("resize", handleResize)
-      return () => {
-        window.visualViewport?.removeEventListener("resize", handleResize)
-      }
-    } else {
-      window.addEventListener("resize", handleResize)
-      return () => {
-        window.removeEventListener("resize", handleResize)
-      }
+  // Function to scroll entire screen to bottom once
+  const scrollScreenToBottomOnce = () => {
+    if (!hasScrolledOnFocus) {
+      setHasScrolledOnFocus(true)
+      setTimeout(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })
+      }, 300)
     }
-  }, [])
+  }
 
   useEffect(() => {
     if (!user || !selectedUserId) return
@@ -115,17 +104,12 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
     }
   }, [conversationId])
 
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
-  // Scroll to bottom when conversation changes
+  // Only scroll when conversation changes (initial load)
   useEffect(() => {
     if (conversationId) {
       // Small delay to ensure messages are rendered
       setTimeout(() => {
-        scrollToBottom()
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
       }, 100)
     }
   }, [conversationId])
@@ -194,9 +178,12 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
     await supabase.from("messages").insert(message)
     setNewMessage("")
 
-    // Scroll to bottom after sending
+    // Reset the focus scroll flag when sending a message
+    setHasScrolledOnFocus(false)
+
+    // Scroll messages section to bottom only if needed when send button is clicked
     setTimeout(() => {
-      scrollToBottom()
+      scrollMessagesToBottomIfNeeded()
     }, 100)
   }
 
@@ -236,10 +223,15 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
   }
 
   const handleInputFocus = () => {
-    // Scroll to bottom once when input is focused
+    // Scroll entire screen to bottom only once per session
+    scrollScreenToBottomOnce()
+  }
+
+  const handleInputBlur = () => {
+    // Reset the scroll flag when input loses focus
     setTimeout(() => {
-      scrollToBottom()
-    }, 300) // Small delay to let keyboard animation start
+      setHasScrolledOnFocus(false)
+    }, 1000) // Reset after 1 second
   }
 
   return (
@@ -305,6 +297,7 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
               }
             }}
             onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
             className="flex-1 text-sm md:text-base resize-none"
             style={{
               fontSize: "16px", // Prevents zoom on iOS
