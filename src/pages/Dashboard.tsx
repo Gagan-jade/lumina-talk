@@ -18,7 +18,7 @@ export default function Dashboard() {
       {/* Mobile header */}
       <div className="md:hidden flex items-center justify-between p-4 border-b bg-card">
         <h1 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">
-          Chatify
+          Lumina
         </h1>
         {selectedUserId && (
           <Button
@@ -59,7 +59,7 @@ export default function Dashboard() {
             <div className="hidden md:flex items-center justify-center h-full text-muted-foreground">
               <div className="text-center">
                 <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                <h3 className="text-xl font-medium mb-2">Welcome to Chatify</h3>
+                <h3 className="text-xl font-medium mb-2">Welcome to Lumina</h3>
                 <p>Select a user to start chatting</p>
               </div>
             </div>

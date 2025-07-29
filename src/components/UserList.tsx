@@ -105,7 +105,7 @@ export function UserList({ onSelectUser, selectedUserId }: UserListProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
-            Chatify
+            Lumina
           </CardTitle>
           <Button 
             variant="ghost" 
@@ -145,7 +145,7 @@ export function UserList({ onSelectUser, selectedUserId }: UserListProps) {
         </div>
       </CardHeader>
       
-      <CardContent className="p-0 flex-1 flex flex-col">
+      <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
         <ScrollArea className="flex-1 min-h-0">
           <div className="space-y-1 p-3">
             {profiles

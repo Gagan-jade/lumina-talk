@@ -86,7 +86,7 @@ export default function Auth() {
             </div>
           </div>
           <h1 className="text-3xl font-bold gradient-primary bg-clip-text text-transparent">
-            Chatify
+            Lumina-Talk
           </h1>
           <p className="text-muted-foreground mt-2">
             Text with friends in real-time
@@ -262,7 +262,6 @@ export default function Auth() {
                   <Button 
                     type="submit" 
                     className="w-full gradient-primary" 
-                    disabled={loading || signUpData.password !== signUpData.confirmPassword}
                   >
                     {loading ? 'Creating Account...' : 'Sign Up'}
                   </Button>
