@@ -22,7 +22,7 @@ export default function Dashboard() {
   return (
     <div className="h-screen bg-background flex flex-col md:flex-row">
       {/* Mobile header - always show Lumina on mobile */}
-      <div className="md:hidden flex items-center p-4 border-b bg-card flex-shrink-0">
+      <div className="md:hidden flex items-center justify-center p-4 border-b bg-card flex-shrink-0">
         <h1 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">Lumina</h1>
       </div>
 
@@ -37,11 +37,13 @@ export default function Dashboard() {
         {/* Chat Window - Full width on mobile when selected */}
         <div className={`${selectedUserId ? "block" : "hidden md:block"} flex-1 min-h-0`}>
           {selectedUserId ? (
-            <ChatWindow
-              selectedUserId={selectedUserId}
-              selectedUsername={selectedUsername}
-              onBackToUsers={handleBackToUsers}
-            />
+            <div className="h-full relative">
+              <ChatWindow
+                selectedUserId={selectedUserId}
+                selectedUsername={selectedUsername}
+                onBackToUsers={handleBackToUsers}
+              />
+            </div>
           ) : (
             <div className="hidden md:flex items-center justify-center h-full text-muted-foreground">
               <div className="text-center">

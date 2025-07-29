@@ -30,7 +30,6 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
   const [newMessage, setNewMessage] = useState("")
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [selectedUserProfile, setSelectedUserProfile] = useState<any>(null)
-  const [keyboardHeight, setKeyboardHeight] = useState(0)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const socketRef = useRef<Socket | null>(null)
@@ -40,36 +39,6 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
-
-  // Handle keyboard visibility on mobile
-  useEffect(() => {
-    const handleResize = () => {
-      if (typeof window !== "undefined") {
-        const windowHeight = window.innerHeight
-        const visualViewportHeight = window.visualViewport?.height || windowHeight
-        const keyboardHeight = windowHeight - visualViewportHeight
-
-        setKeyboardHeight(keyboardHeight > 0 ? keyboardHeight : 0)
-
-        // Scroll to bottom when keyboard appears/disappears
-        setTimeout(() => {
-          scrollToBottom()
-        }, 100)
-      }
-    }
-
-    if (typeof window !== "undefined" && window.visualViewport) {
-      window.visualViewport.addEventListener("resize", handleResize)
-      return () => {
-        window.visualViewport?.removeEventListener("resize", handleResize)
-      }
-    } else {
-      window.addEventListener("resize", handleResize)
-      return () => {
-        window.removeEventListener("resize", handleResize)
-      }
-    }
-  }, [])
 
   useEffect(() => {
     if (!user || !selectedUserId) return
@@ -193,9 +162,9 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
     await supabase.from("messages").insert(message)
     setNewMessage("")
 
-    // Keep focus on input after sending
+    // Scroll to bottom after sending
     setTimeout(() => {
-      inputRef.current?.focus()
+      scrollToBottom()
     }, 100)
   }
 
@@ -235,12 +204,7 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
   }
 
   return (
-    <div
-      className="h-full flex flex-col bg-background overflow-hidden"
-      style={{
-        height: keyboardHeight > 0 ? `calc(100vh - ${keyboardHeight}px)` : "100%",
-      }}
-    >
+    <div className="h-full flex flex-col bg-background overflow-hidden">
       {/* Header - Fixed */}
       <div className="flex items-center gap-3 p-3 md:p-4 border-b bg-card flex-shrink-0">
         <Avatar className="h-8 w-8 md:h-10 md:w-10">
@@ -287,13 +251,8 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
         </ScrollArea>
       </div>
 
-      {/* Input Area - Fixed at bottom with keyboard adjustment */}
-      <div
-        className="p-3 md:p-4 border-t bg-background flex-shrink-0"
-        style={{
-          paddingBottom: keyboardHeight > 0 ? "8px" : undefined,
-        }}
-      >
+      {/* Input Area - Fixed at bottom with mobile keyboard handling */}
+      <div className="p-3 md:p-4 border-t bg-background flex-shrink-0 relative">
         <div className="flex gap-2">
           <Input
             ref={inputRef}
@@ -306,17 +265,10 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
                 sendMessage()
               }
             }}
-            onFocus={() => {
-              // Scroll to bottom when input is focused
-              setTimeout(() => {
-                scrollToBottom()
-              }, 300)
-            }}
             className="flex-1 text-sm md:text-base resize-none"
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck="false"
+            style={{
+              fontSize: "16px", // Prevents zoom on iOS
+            }}
           />
           <Button onClick={sendMessage} disabled={!newMessage.trim()} size="sm" className="px-3 md:px-4 flex-shrink-0">
             <Send className="h-4 w-4" />
