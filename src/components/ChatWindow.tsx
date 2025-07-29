@@ -30,15 +30,75 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
   const [newMessage, setNewMessage] = useState("")
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [selectedUserProfile, setSelectedUserProfile] = useState<any>(null)
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const socketRef = useRef<Socket | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Function to scroll to bottom
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
+
+  // Function to start continuous scrolling
+  const startContinuousScrolling = () => {
+    if (scrollIntervalRef.current) return // Already scrolling
+
+    scrollIntervalRef.current = setInterval(() => {
+      scrollToBottom()
+    }, 100) // Scroll every 100ms
+  }
+
+  // Function to stop continuous scrolling
+  const stopContinuousScrolling = () => {
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current)
+      scrollIntervalRef.current = null
+    }
+  }
+
+  // Handle keyboard visibility detection
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== "undefined") {
+        const windowHeight = window.innerHeight
+        const visualViewportHeight = window.visualViewport?.height || windowHeight
+        const keyboardHeight = windowHeight - visualViewportHeight
+
+        const keyboardIsOpen = keyboardHeight > 150 // Threshold for keyboard detection
+
+        if (keyboardIsOpen !== isKeyboardOpen) {
+          setIsKeyboardOpen(keyboardIsOpen)
+
+          if (keyboardIsOpen) {
+            startContinuousScrolling()
+          } else {
+            stopContinuousScrolling()
+            // One final scroll when keyboard closes
+            setTimeout(() => {
+              scrollToBottom()
+            }, 100)
+          }
+        }
+      }
+    }
+
+    if (typeof window !== "undefined" && window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleResize)
+      return () => {
+        window.visualViewport?.removeEventListener("resize", handleResize)
+        stopContinuousScrolling()
+      }
+    } else {
+      window.addEventListener("resize", handleResize)
+      return () => {
+        window.removeEventListener("resize", handleResize)
+        stopContinuousScrolling()
+      }
+    }
+  }, [isKeyboardOpen])
 
   useEffect(() => {
     if (!user || !selectedUserId) return
@@ -53,6 +113,7 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
       if (socketRef.current) {
         socketRef.current.disconnect()
       }
+      stopContinuousScrolling()
     }
   }, [user, selectedUserId])
 
@@ -203,6 +264,22 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
     return "Last seen unknown"
   }
 
+  const handleInputFocus = () => {
+    // Start continuous scrolling when input is focused
+    setTimeout(() => {
+      startContinuousScrolling()
+    }, 300) // Small delay to let keyboard animation start
+  }
+
+  const handleInputBlur = () => {
+    // Stop continuous scrolling when input loses focus
+    setTimeout(() => {
+      if (!isKeyboardOpen) {
+        stopContinuousScrolling()
+      }
+    }, 100)
+  }
+
   return (
     <div className="h-full flex flex-col bg-background overflow-hidden">
       {/* Header - Fixed */}
@@ -251,8 +328,8 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
         </ScrollArea>
       </div>
 
-      {/* Input Area - Fixed at bottom with mobile keyboard handling */}
-      <div className="p-3 md:p-4 border-t bg-background flex-shrink-0 relative">
+      {/* Input Area - Fixed at bottom */}
+      <div className="p-3 md:p-4 border-t bg-background flex-shrink-0">
         <div className="flex gap-2">
           <Input
             ref={inputRef}
@@ -265,6 +342,8 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
                 sendMessage()
               }
             }}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
             className="flex-1 text-sm md:text-base resize-none"
             style={{
               fontSize: "16px", // Prevents zoom on iOS
