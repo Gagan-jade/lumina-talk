@@ -174,6 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await updateOnlineStatus(false);
     }
     await supabase.auth.signOut();
+    window.location.href = "/auth";
   };
 
   return (
