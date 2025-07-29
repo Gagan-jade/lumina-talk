@@ -79,9 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Username is unique, now attempt signup (this will check email)
-    const redirectUrl = window.location.hostname === 'localhost' 
-      ? `http://localhost:${window.location.port || '5173'}/auth?verified=true`
-      : `${window.location.origin}/auth?verified=true`;
+    const redirectUrl = `${window.location.origin}?verified=true`;
     
     const { error } = await supabase.auth.signUp({
       email,
