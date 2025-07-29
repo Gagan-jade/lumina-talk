@@ -77,44 +77,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error };
     }
 
-    // Check if email already exists by attempting sign up without confirmation
-    // We'll use a dry-run approach to check email existence
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password: 'temp-password-for-check',
-      options: {
-        data: { username },
-        emailRedirectTo: 'about:blank' // Prevent any actual email sending
-      }
-    });
-
-    // If no error, the email is available, but we need to sign out this temp user
-    if (!authError && authData.user && !authData.user.email_confirmed_at) {
-      // Clean up the temp signup
-      await supabase.auth.signOut();
-    }
-
-    // If email already exists, Supabase will return a specific error
-    if (authError) {
-      if (authError.message.includes('already registered') || 
-          authError.message.includes('already been registered') ||
-          authError.message.includes('User already registered')) {
-        const error = { message: "Email already exists" };
-        toast({
-          title: "Sign up failed",
-          description: "Email already exists, please login",
-          variant: "destructive"
-        });
-        return { error };
-      }
-    }
-
-    // If we reach here, both username and email are unique, proceed with actual signup
+    // Username is unique, now attempt signup (this will check email)
     const redirectUrl = window.location.hostname === 'localhost' 
       ? `http://localhost:${window.location.port || '5173'}/auth?verified=true`
       : `${window.location.origin}/auth?verified=true`;
     
-    const { error: finalError } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -125,13 +93,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
     
-    if (finalError) {
+    if (error) {
+      let errorMessage = error.message;
+      
+      // Handle specific error cases for email already exists
+      if (error.message.includes('already registered') || 
+          error.message.includes('already been registered') ||
+          error.message.includes('User already registered')) {
+        errorMessage = "Email already exists, please login";
+      }
+      
       toast({
         title: "Sign up failed",
-        description: finalError.message,
+        description: errorMessage,
         variant: "destructive"
       });
-      return { error: finalError };
+      return { error };
     } else {
       toast({
         title: "Check your email",
