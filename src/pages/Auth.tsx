@@ -25,6 +25,8 @@ export default function Auth() {
     confirmPassword: ''
   });
 
+  const [passwordMismatch, setPasswordMismatch] = useState(false);
+
   // Check if user came from email verification
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -48,9 +50,11 @@ export default function Auth() {
     e.preventDefault();
     
     if (signUpData.password !== signUpData.confirmPassword) {
+      setPasswordMismatch(true);
       return;
     }
     
+    setPasswordMismatch(false);
     setLoading(true);
     const result = await signUp(signUpData.email, signUpData.password, signUpData.username);
     
@@ -196,9 +200,16 @@ export default function Auth() {
                       type="password"
                       placeholder="Confirm Password"
                       value={signUpData.confirmPassword}
-                      onChange={(e) => setSignUpData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      onChange={(e) => {
+                        setSignUpData(prev => ({ ...prev, confirmPassword: e.target.value }));
+                        setPasswordMismatch(false);
+                      }}
                       required
+                      className={passwordMismatch ? 'border-destructive' : ''}
                     />
+                    {passwordMismatch && (
+                      <p className="text-sm text-destructive">Passwords do not match</p>
+                    )}
                   </div>
                   <Button 
                     type="submit" 

@@ -27,6 +27,7 @@ export function ChatWindow({ selectedUserId, selectedUsername }: ChatWindowProps
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [selectedUserProfile, setSelectedUserProfile] = useState<any>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
 
@@ -37,6 +38,7 @@ export function ChatWindow({ selectedUserId, selectedUsername }: ChatWindowProps
     socketRef.current = io('http://localhost:8080');
     
     initializeConversation();
+    fetchSelectedUserProfile();
     
     return () => {
       if (socketRef.current) {
@@ -136,8 +138,45 @@ export function ChatWindow({ selectedUserId, selectedUsername }: ChatWindowProps
     setNewMessage('');
   };
 
+  const fetchSelectedUserProfile = async () => {
+    if (!selectedUserId) return;
+
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', selectedUserId)
+      .single();
+
+    if (data) {
+      setSelectedUserProfile(data);
+    }
+  };
+
   const getInitials = (username: string) => {
     return username.slice(0, 2).toUpperCase();
+  };
+
+  const formatLastSeen = (lastSeen: string) => {
+    const date = new Date(lastSeen);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Active just now';
+    if (diffInMinutes < 60) return `Active ${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `Active ${Math.floor(diffInMinutes / 60)}h ago`;
+    return `Active ${Math.floor(diffInMinutes / 1440)}d ago`;
+  };
+
+  const getActiveStatus = () => {
+    if (!selectedUserProfile) return 'Active now';
+    
+    if (selectedUserProfile.is_online) {
+      return 'Active now';
+    } else if (selectedUserProfile.last_seen) {
+      return formatLastSeen(selectedUserProfile.last_seen);
+    }
+    
+    return 'Last seen unknown';
   };
 
   return (
@@ -150,7 +189,7 @@ export function ChatWindow({ selectedUserId, selectedUsername }: ChatWindowProps
         </Avatar>
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-sm md:text-base truncate">{selectedUsername}</h3>
-          <p className="text-xs md:text-sm text-muted-foreground">Active now</p>
+          <p className="text-xs md:text-sm text-muted-foreground">{getActiveStatus()}</p>
         </div>
       </div>
 

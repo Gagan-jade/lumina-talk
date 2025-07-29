@@ -100,8 +100,8 @@ export function UserList({ onSelectUser, selectedUserId }: UserListProps) {
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-4">
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
@@ -134,22 +134,20 @@ export function UserList({ onSelectUser, selectedUserId }: UserListProps) {
           </div>
         )}
         
-        <div className="px-4 pb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+        <div className="relative px-3">
+          <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
       </CardHeader>
       
-      <CardContent className="p-0 pb-4">
-        <ScrollArea className="h-[calc(100vh-350px)]">
-          <div className="space-y-1 px-4">
+      <CardContent className="p-0 flex-1 flex flex-col">
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="space-y-1 p-3">
             {profiles
               .filter(profile => 
                 profile.username.toLowerCase().includes(searchTerm.toLowerCase())
@@ -191,11 +189,13 @@ export function UserList({ onSelectUser, selectedUserId }: UserListProps) {
               </Button>
             ))}
             
-            {profiles.length === 0 && (
+            {profiles.filter(profile => 
+              profile.username.toLowerCase().includes(searchTerm.toLowerCase())
+            ).length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No other users found</p>
-                <p className="text-sm">Invite friends to start chatting!</p>
+                <p>{profiles.length === 0 ? 'No other users found' : 'No users match your search'}</p>
+                <p className="text-sm">{profiles.length === 0 ? 'Invite friends to start chatting!' : 'Try a different search term'}</p>
               </div>
             )}
           </div>
