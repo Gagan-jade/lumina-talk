@@ -8,6 +8,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { MessageCircle, LogOut, Search } from 'lucide-react';
+import { Loader2 } from "lucide-react"; // Loader2 is a nice spinning icon
+
 
 interface Profile {
   id: string;
@@ -23,6 +25,7 @@ interface UserListProps {
 }
 
 export function UserList({ onSelectUser, selectedUserId }: UserListProps) {
+  const [signingOut, setSigningOut] = useState(false);
   const { user, signOut } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentUserProfile, setCurrentUserProfile] = useState<Profile | null>(null);
@@ -92,7 +95,7 @@ export function UserList({ onSelectUser, selectedUserId }: UserListProps) {
     const date = new Date(lastSeen);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
@@ -107,16 +110,25 @@ export function UserList({ onSelectUser, selectedUserId }: UserListProps) {
             <MessageCircle className="h-5 w-5" />
             Lumina
           </CardTitle>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={signOut}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              setSigningOut(true);
+              await signOut(); // make sure this does the redirect or page reload
+            }}
+            disabled={signingOut}
             className="text-muted-foreground hover:text-foreground"
           >
-            <LogOut className="h-4 w-4" />
+            {signingOut ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
           </Button>
+
         </div>
-        
+
         {currentUserProfile && (
           <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
             <Avatar>
@@ -133,7 +145,7 @@ export function UserList({ onSelectUser, selectedUserId }: UserListProps) {
             </div>
           </div>
         )}
-        
+
         <div className="relative px-3">
           <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -144,60 +156,60 @@ export function UserList({ onSelectUser, selectedUserId }: UserListProps) {
           />
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
         <ScrollArea className="flex-1 min-h-0">
           <div className="space-y-1 p-3">
             {profiles
-              .filter(profile => 
+              .filter(profile =>
                 profile.username.toLowerCase().includes(searchTerm.toLowerCase())
               )
               .map((profile) => (
-              <Button
-                key={profile.user_id}
-                variant={selectedUserId === profile.user_id ? "secondary" : "ghost"}
-                className="w-full justify-start h-auto p-3 transition-smooth"
-                onClick={() => onSelectUser(profile.user_id, profile.username)}
-              >
-                <div className="flex items-center gap-3 w-full">
-                  <div className="relative">
-                    <Avatar>
-                      <AvatarFallback>
-                        {getInitials(profile.username)}
-                      </AvatarFallback>
-                    </Avatar>
-                    {profile.is_online && (
-                      <div className="absolute -bottom-1 -right-1 online-dot"></div>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 text-left">
-                    <div className="font-medium">{profile.username}</div>
-                    <div className="flex items-center gap-2">
-                      {profile.is_online ? (
-                        <Badge variant="secondary" className="text-xs">
-                          Online
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">
-                          {formatLastSeen(profile.last_seen)}
-                        </span>
+                <Button
+                  key={profile.user_id}
+                  variant={selectedUserId === profile.user_id ? "secondary" : "ghost"}
+                  className="w-full justify-start h-auto p-3 transition-smooth"
+                  onClick={() => onSelectUser(profile.user_id, profile.username)}
+                >
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="relative">
+                      <Avatar>
+                        <AvatarFallback>
+                          {getInitials(profile.username)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {profile.is_online && (
+                        <div className="absolute -bottom-1 -right-1 online-dot"></div>
                       )}
                     </div>
+
+                    <div className="flex-1 text-left">
+                      <div className="font-medium">{profile.username}</div>
+                      <div className="flex items-center gap-2">
+                        {profile.is_online ? (
+                          <Badge variant="secondary" className="text-xs">
+                            Online
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            {formatLastSeen(profile.last_seen)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </Button>
-            ))}
-            
-            {profiles.filter(profile => 
+                </Button>
+              ))}
+
+            {profiles.filter(profile =>
               profile.username.toLowerCase().includes(searchTerm.toLowerCase())
             ).length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>{profiles.length === 0 ? 'No other users found' : 'No users match your search'}</p>
-                <p className="text-sm">{profiles.length === 0 ? 'Invite friends to start chatting!' : 'Try a different search term'}</p>
-              </div>
-            )}
+                <div className="text-center py-8 text-muted-foreground">
+                  <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>{profiles.length === 0 ? 'No other users found' : 'No users match your search'}</p>
+                  <p className="text-sm">{profiles.length === 0 ? 'Invite friends to start chatting!' : 'Try a different search term'}</p>
+                </div>
+              )}
           </div>
         </ScrollArea>
       </CardContent>

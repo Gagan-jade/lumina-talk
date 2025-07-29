@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -174,7 +175,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await updateOnlineStatus(false);
     }
     await supabase.auth.signOut();
-    window.location.href = "/auth";
   };
 
   return (
