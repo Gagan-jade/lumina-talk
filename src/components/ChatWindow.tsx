@@ -35,42 +35,15 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
   const socketRef = useRef<Socket | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Function to scroll to bottom
-  const scrollToBottom = () => {
+  // Function to scroll messages to bottom
+  const scrollMessagesToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
-  // Handle keyboard visibility detection
-  useEffect(() => {
-    const handleResize = () => {
-      if (typeof window !== "undefined") {
-        const windowHeight = window.innerHeight
-        const visualViewportHeight = window.visualViewport?.height || windowHeight
-        const keyboardHeight = windowHeight - visualViewportHeight
-
-        const keyboardIsOpen = keyboardHeight > 150 // Threshold for keyboard detection
-
-        if (keyboardIsOpen) {
-          // Scroll to bottom once when keyboard opens
-          setTimeout(() => {
-            scrollToBottom()
-          }, 300) // Small delay to let keyboard animation complete
-        }
-      }
-    }
-
-    if (typeof window !== "undefined" && window.visualViewport) {
-      window.visualViewport.addEventListener("resize", handleResize)
-      return () => {
-        window.visualViewport?.removeEventListener("resize", handleResize)
-      }
-    } else {
-      window.addEventListener("resize", handleResize)
-      return () => {
-        window.removeEventListener("resize", handleResize)
-      }
-    }
-  }, [])
+  // Function to scroll entire screen to bottom
+  const scrollScreenToBottom = () => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })
+  }
 
   useEffect(() => {
     if (!user || !selectedUserId) return
@@ -115,17 +88,17 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
     }
   }, [conversationId])
 
-  // Scroll to bottom when messages change
+  // Scroll messages to bottom when messages change (for new incoming messages)
   useEffect(() => {
-    scrollToBottom()
+    scrollMessagesToBottom()
   }, [messages])
 
-  // Scroll to bottom when conversation changes
+  // Scroll messages to bottom when conversation changes
   useEffect(() => {
     if (conversationId) {
       // Small delay to ensure messages are rendered
       setTimeout(() => {
-        scrollToBottom()
+        scrollMessagesToBottom()
       }, 100)
     }
   }, [conversationId])
@@ -194,9 +167,9 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
     await supabase.from("messages").insert(message)
     setNewMessage("")
 
-    // Scroll to bottom after sending
+    // Scroll messages section to bottom when send button is clicked
     setTimeout(() => {
-      scrollToBottom()
+      scrollMessagesToBottom()
     }, 100)
   }
 
@@ -236,10 +209,10 @@ export function ChatWindow({ selectedUserId, selectedUsername, onBackToUsers }: 
   }
 
   const handleInputFocus = () => {
-    // Scroll to bottom once when input is focused
+    // Scroll entire screen to bottom when "Type a message" is clicked
     setTimeout(() => {
-      scrollToBottom()
-    }, 300) // Small delay to let keyboard animation start
+      scrollScreenToBottom()
+    }, 300)
   }
 
   return (
